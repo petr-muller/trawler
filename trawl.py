@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # encoding: utf-8
 '''
-trawler -- A test result crawler
+trawl -- A test result crawler
 
-trawler is a program creating test result history datasets.
+trawl is a program creating test result history datasets.
 
 @author:     Petr Muller
 
@@ -20,6 +20,8 @@ import os
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+
+from trawler.trawler import Trawler
 
 __all__ = []
 __version__ = 0.1
@@ -71,9 +73,15 @@ USAGE
         parser = ArgumentParser(description=program_license,
                                 formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
+        parser.add_argument('repository_path')
+        parser.add_argument("-f", "--from", dest="start", default="master")
+        parser.add_argument("-t", "--to", dest="end", default="master")
 
         # Process arguments
         args = parser.parse_args()
+
+        trawler = Trawler(args.repository_path, args.start, args.end)
+        trawler.run()
 
         return 0
     except KeyboardInterrupt:
