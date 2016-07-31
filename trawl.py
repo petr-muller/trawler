@@ -98,10 +98,11 @@ USAGE
         return 2
 
 if __name__ == "__main__":
+    FORMAT = "[%(levelname)8s] :: %(message)s"
     if DEBUG:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format=FORMAT)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, format=FORMAT)
     if PROFILE_MODE:
         import cProfile
         import pstats

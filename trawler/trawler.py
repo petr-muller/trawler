@@ -61,7 +61,8 @@ class Trawler(object):
         compile_recipe, test_recipe, clean_recipe = self._get_recipes()
         repository_executor = Executor(self.repo_path, compile_recipe, test_recipe, clean_recipe)
 
-        iterator = GitRepoIterator(self.repo_path, self.top, self.bottom, only_paths=self.recipe["repository"]["filter"])
+        iterator = GitRepoIterator(self.repo_path, self.top, self.bottom,
+                                   only_paths=self.recipe["repository"]["filter"])
 
         self.prepare_output_directory()
 

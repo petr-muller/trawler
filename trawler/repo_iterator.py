@@ -4,10 +4,10 @@ Created on Jul 30, 2016
 @author: Petr Muller
 '''
 
+import logging
 import re
 
 import git
-import logging
 
 
 class GitRepoIterator(object):
@@ -31,6 +31,9 @@ class GitRepoIterator(object):
         return self
 
     def is_included(self, commit):
+        """
+        Returns true if a commit would be returned while iterating.
+        """
         if self.only_paths is None:
             return True
 
@@ -60,8 +63,13 @@ class GitRepoIterator(object):
         else:
             candidate = self.repo.commit(self.last).parents[0]
 
+        skipped = 0
         while not self.is_included(candidate):
+            skipped += 1
             candidate = candidate.parents[0]
+
+        if skipped:
+            logging.debug("Skipped %d commits before commit '%s'", skipped, candidate.hexsha)
 
         self.repo_direct.checkout(candidate.hexsha)
         self.last = candidate.hexsha
