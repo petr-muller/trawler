@@ -22,7 +22,7 @@ class Executor(object):
     def _run_recipe(recipe, output=subprocess.DEVNULL, check=True):
         for item in recipe:
             to_run = shlex.split(item)
-            subprocess.run(to_run, stdout=output, check=check)
+            subprocess.run(to_run, stdout=output, stderr=subprocess.STDOUT, check=check)
 
     def compile(self):
         """
