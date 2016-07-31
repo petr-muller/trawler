@@ -98,9 +98,10 @@ USAGE
         return 2
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     if DEBUG:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     if PROFILE_MODE:
         import cProfile
         import pstats

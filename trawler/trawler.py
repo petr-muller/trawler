@@ -4,6 +4,7 @@ Created on Jul 30, 2016
 @author: Petr Muller
 '''
 import configparser
+import datetime
 import logging
 import os
 import timeit
@@ -22,18 +23,35 @@ class Trawler(object):
         self.repo_path = repository_path
         self.top = top_revision
         self.bottom = bottom_revision
-        self.recipe_file = recipe_file
+
+        self.recipe = configparser.ConfigParser()
+        self.recipe.read(recipe_file)
+
+        self.output_directory = None
 
     def _get_recipes(self):
-        parser = configparser.ConfigParser()
-        parser.read(self.recipe_file)
 
-        compile_recipe = parser["recipes"]["compile"].split(';')
-        test_recipe = parser["recipes"]["test"].split(';')
-        clean_recipe = parser["recipes"]["clean"].split(";")
+        compile_recipe = self.recipe["recipes"]["compile"].split(';')
+        test_recipe = self.recipe["recipes"]["test"].split(';')
+        clean_recipe = self.recipe["recipes"]["clean"].split(";")
 
         return (compile_recipe, test_recipe, clean_recipe)
 
+    def prepare_output_directory(self):
+        """
+        Prepares an output directory for this crawling run.
+        """
+        output_dir_name = "{0}-{1}".format(self.recipe["metadata"]["name"],
+                                           datetime.datetime.now().isoformat())
+        output_dir = os.getcwd() / Path(output_dir_name)
+
+        if output_dir.exists():
+            logging.debug("Output directory '%s' exists: removing", output_dir)
+            output_dir.rmtree()
+        output_dir.makedirs()
+
+        logging.debug("Setting output directory: %s", output_dir)
+        self.output_directory = output_dir
 
     def run(self):
         """
@@ -45,10 +63,7 @@ class Trawler(object):
 
         iterator = GitRepoIterator(self.repo_path, self.top, self.bottom)
 
-        output_dir = os.getcwd() / Path("output")
-        if output_dir.exists():
-            output_dir.rmtree()
-        output_dir.makedirs()
+        self.prepare_output_directory()
 
         counter = 1
         for revision in iterator:
@@ -62,7 +77,7 @@ class Trawler(object):
 
             logging.info("Testing revision:    %s", revision)
             output_filename = "{0:04d}-{1}".format(counter, revision)
-            output_file_path = output_dir / output_filename
+            output_file_path = self.output_directory / output_filename
             test_start = timeit.default_timer()
             repository_executor.test(output_file_path)
             test_end = timeit.default_timer()
