@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # encoding: utf-8
 '''
 trawl -- A test result crawler
@@ -15,13 +15,14 @@ trawl is a program creating test result history datasets.
 @deffield    updated: Updated
 '''
 
-import sys
-import os
-
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+import logging
+import os
+import sys
 
 from trawler.trawler import Trawler
+
 
 __all__ = []
 __version__ = 0.1
@@ -74,13 +75,14 @@ USAGE
                                 formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument('repository_path')
+        parser.add_argument('recipe_file')
         parser.add_argument("-f", "--from", dest="start", default="master")
         parser.add_argument("-t", "--to", dest="end", default="master")
 
         # Process arguments
         args = parser.parse_args()
 
-        trawler = Trawler(args.repository_path, args.start, args.end)
+        trawler = Trawler(args.repository_path, args.recipe_file, args.start, args.end)
         trawler.run()
 
         return 0
@@ -96,10 +98,9 @@ USAGE
         return 2
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     if DEBUG:
-        sys.argv.append("-h")
-        sys.argv.append("-v")
-        sys.argv.append("-r")
+        logging.basicConfig(level=logging.DEBUG)
     if PROFILE_MODE:
         import cProfile
         import pstats

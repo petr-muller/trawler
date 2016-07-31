@@ -19,28 +19,29 @@ class Executor(object):
         self.clean_recipe = clean_recipe
 
     @staticmethod
-    def _run_recipe(recipe):
+    def _run_recipe(recipe, output=subprocess.DEVNULL, check=True):
         for item in recipe:
             to_run = shlex.split(item)
-            subprocess.check_call(to_run)
+            subprocess.run(to_run, stdout=output, check=check)
 
     def compile(self):
         """
         Execute a recipe to compile the software project.
         """
         with self.repo_path:
-            Executor._run_recipe(self.compile_recipe)
+            Executor._run_recipe(self.compile_recipe, check=True)
 
-    def test(self):
+    def test(self, output_file_path):
         """
         Execute a recipe to run a projects testsuite.
         """
-        with self.repo_path:
-            Executor._run_recipe(self.test_recipe)
+        with open(output_file_path, "w") as output_file:
+            with self.repo_path:
+                Executor._run_recipe(self.test_recipe, output=output_file, check=False)
 
     def clean(self):
         """
         Execute a recipe to clean the projects build state.
         """
         with self.repo_path:
-            Executor._run_recipe(self.clean_recipe)
+            Executor._run_recipe(self.clean_recipe, check=False)
