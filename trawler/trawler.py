@@ -70,8 +70,11 @@ class Trawler(object):
         for revision in iterator:
             logging.info("Processing revision: %s", revision)
             logging.info("Compiling revision:  %s", revision)
+            output_filename = "{0:04d}-{1}-compile-log".format(counter, revision)
+            output_file_path = self.output_directory / output_filename
             compile_start = timeit.default_timer()
-            repository_executor.compile()
+            repository_executor.compile(output_file_path)
+            output_file_path.remove()
             compile_end = timeit.default_timer()
             logging.info("Compiling revision:  %s: OK (%d seconds)", revision,
                          compile_end - compile_start)

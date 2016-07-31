@@ -24,12 +24,13 @@ class Executor(object):
             to_run = shlex.split(item)
             subprocess.run(to_run, stdout=output, stderr=subprocess.STDOUT, check=check)
 
-    def compile(self):
+    def compile(self, output_file_path):
         """
         Execute a recipe to compile the software project.
         """
-        with self.repo_path:
-            Executor._run_recipe(self.compile_recipe, check=True)
+        with open(output_file_path, "w") as output_file:
+            with self.repo_path:
+                Executor._run_recipe(self.compile_recipe, output=output_file, check=True)
 
     def test(self, output_file_path):
         """
