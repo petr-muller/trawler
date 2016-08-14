@@ -78,11 +78,13 @@ USAGE
         parser.add_argument('recipe_file')
         parser.add_argument("-f", "--from", dest="start", default="master")
         parser.add_argument("-t", "--to", dest="end", default="master")
+        parser.add_argument("--strategy", choices=("linear", "pairs"), default="linear")
 
         # Process arguments
         args = parser.parse_args()
 
-        trawler = Trawler(args.repository_path, args.recipe_file, args.start, args.end)
+        trawler = Trawler(args.repository_path, args.recipe_file, args.start, args.end,
+                          args.strategy)
         trawler.run()
 
         return 0

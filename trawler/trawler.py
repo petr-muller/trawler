@@ -12,14 +12,14 @@ import timeit
 from path import Path
 
 from trawler.executor import Executor
-from trawler.repo_iterator import GitRepoIterator
+from trawler.repo_iterator import select_strategy
 
 
 class Trawler(object):
     """
     Crawls a Git repository, obtaining test result artifacts for each revision.
     """
-    def __init__(self, repository_path, recipe_file, top_revision, bottom_revision):
+    def __init__(self, repository_path, recipe_file, top_revision, bottom_revision, strategy):
         self.repo_path = repository_path
         self.top = top_revision
         self.bottom = bottom_revision
@@ -28,6 +28,8 @@ class Trawler(object):
         self.recipe.read(recipe_file)
 
         self.output_directory = None
+
+        self.strategy = strategy
 
     def _get_recipes(self):
 
@@ -61,8 +63,10 @@ class Trawler(object):
         compile_recipe, test_recipe, clean_recipe = self._get_recipes()
         repository_executor = Executor(self.repo_path, compile_recipe, test_recipe, clean_recipe)
 
-        iterator = GitRepoIterator(self.repo_path, self.top, self.bottom,
-                                   only_paths=self.recipe["repository"]["filter"])
+        strategy = select_strategy(self.strategy)
+
+        iterator = strategy(self.repo_path, self.top, self.bottom,
+                            only_paths=self.recipe["repository"]["filter"])
 
         self.prepare_output_directory()
 
@@ -88,3 +92,5 @@ class Trawler(object):
             logging.info("Testing revision:    %s: finished (%d seconds)", revision,
                          test_end - test_start)
             counter += 1
+
+            iterator.write_data(self.output_directory)
