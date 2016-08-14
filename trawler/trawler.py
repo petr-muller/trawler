@@ -12,7 +12,7 @@ from typing import Tuple, List
 from pathlib import Path
 
 from trawler.executor import Executor
-from trawler.repo_iterator import select_strategy, GenericStrategy
+from trawler.repo_iterator import select_strategy
 
 
 class Trawler(object):
@@ -20,7 +20,7 @@ class Trawler(object):
     Crawls a Git repository, obtaining test result artifacts for each revision.
     """
     def __init__(self, repository_path: str, recipe_file: str, top_revision: str,
-                 bottom_revision: str, strategy: GenericStrategy) -> None:
+                 bottom_revision: str, strategy: str) -> None:
         self.repo_path = repository_path
         self.top = top_revision
         self.bottom = bottom_revision

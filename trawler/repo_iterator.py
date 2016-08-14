@@ -6,8 +6,11 @@ Created on Jul 30, 2016
 
 import logging
 import re
+from pathlib import Path
 
 import git
+from git.objects.commit import Commit
+
 
 class GenericStrategy(object):
     """
@@ -15,7 +18,7 @@ class GenericStrategy(object):
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, repo_path, start, finish, only_paths):
+    def __init__(self, repo_path: str, start: str, finish: str, only_paths: str) -> None:
         self.repo = git.Repo(repo_path)
         self.repo_direct = git.Git(repo_path)
 
@@ -23,16 +26,16 @@ class GenericStrategy(object):
         self.finish = finish
         self.only_paths = only_paths
 
-        self.last = None
+        self.last = None # type: str
 
-    def __iter__(self):
+    def __iter__(self) -> "GenericStrategy":
         return self
 
-    def __next__(self):
+    def __next__(self) -> str:
         # pylint: disable=no-self-use
         raise Exception("This class should not be instantiated directly")
 
-    def is_included(self, commit):
+    def is_included(self, commit: Commit) -> bool:
         """
         Returns true if a commit would be returned while iterating.
         """
@@ -66,16 +69,16 @@ class PairStrategy(GenericStrategy):
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, repo_path, start, finish, only_paths):
+    def __init__(self, repo_path: str, start: str, finish: str, only_paths: str) -> None:
         super(PairStrategy, self).__init__(repo_path, start, finish, only_paths)
 
         self.worklist = [start]
-        self.return_queue = []
+        self.return_queue = [] # type: List[str]
 
-        self.visited = set()
-        self.pairs = {}
+        self.visited = set() # type: Set[str]
+        self.pairs = {} # type: Dict[str, str]
 
-    def __next__(self):
+    def __next__(self) -> str:
         if self.last == self.finish:
             raise StopIteration
 
@@ -108,7 +111,7 @@ class PairStrategy(GenericStrategy):
 
         raise StopIteration
 
-    def write_data(self, directory_path):
+    def write_data(self, directory_path: Path) -> None:
         """
         Writes additional data about the strategy execution into a given directory.
 
@@ -130,10 +133,10 @@ class LinearStrategy(GenericStrategy):
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, repo_path, start, finish, only_paths=None):
+    def __init__(self, repo_path: str, start: str, finish: str, only_paths: str=None) -> None:
         super(LinearStrategy, self).__init__(repo_path, start, finish, only_paths)
 
-    def __next__(self):
+    def __next__(self) -> str:
         if self.last == self.finish:
             raise StopIteration
 
@@ -156,6 +159,6 @@ class LinearStrategy(GenericStrategy):
 
 STRATEGIES = {"linear": LinearStrategy, "pairs": PairStrategy}
 
-def select_strategy(identifier):
+def select_strategy(identifier: str):
     """Returns a strategy class for a given identifier"""
     return STRATEGIES[identifier]
