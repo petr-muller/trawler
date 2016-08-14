@@ -24,13 +24,11 @@ import sys
 from trawler.trawler import Trawler
 
 
-__all__ = []
 __version__ = 0.1
 __date__ = '2016-07-30'
 __updated__ = '2016-07-30'
 
 DEBUG = 1
-PROFILE_MODE = 0
 
 class CLIError(Exception):
     '''Generic exception to raise and log different fatal errors.'''
@@ -105,15 +103,5 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
     else:
         logging.basicConfig(level=logging.INFO, format=FORMAT)
-    if PROFILE_MODE:
-        import cProfile
-        import pstats
-        PROFILE_FILENAME = 'trawler_profile.txt'
-        cProfile.run('main()', PROFILE_FILENAME)
-        STATSFILE = open("profile_stats.txt", "wb")
-        PROFILE = pstats.Stats(PROFILE_FILENAME, stream=STATSFILE)
-        STATS = PROFILE.strip_dirs().sort_stats('cumulative')
-        STATS.print_stats()
-        STATSFILE.close()
-        sys.exit(0)
+
     sys.exit(main())

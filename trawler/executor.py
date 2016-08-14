@@ -5,7 +5,7 @@ Created on Jul 30, 2016
 '''
 import subprocess
 import shlex
-import path
+from pathlib import Path
 
 class Executor(object):
     """
@@ -13,7 +13,7 @@ class Executor(object):
     """
 
     def __init__(self, repo_path, compile_recipe, test_recipe, clean_recipe):
-        self.repo_path = path.Path(repo_path)
+        self.repo_path = Path(repo_path)
         self.compile_recipe = compile_recipe
         self.test_recipe = test_recipe
         self.clean_recipe = clean_recipe

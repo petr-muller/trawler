@@ -8,8 +8,7 @@ import datetime
 import logging
 import os
 import timeit
-
-from path import Path
+from pathlib import Path
 
 from trawler.executor import Executor
 from trawler.repo_iterator import select_strategy

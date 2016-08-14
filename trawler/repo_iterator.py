@@ -13,6 +13,8 @@ class GenericStrategy(object):
     """
     Base class for strategies. Not intended for instantiation.
     """
+
+    # pylint: disable=too-few-public-methods
     def __init__(self, repo_path, start, finish, only_paths):
         self.repo = git.Repo(repo_path)
         self.repo_direct = git.Git(repo_path)
@@ -61,6 +63,9 @@ class PairStrategy(GenericStrategy):
     Each iteration returns a revision that is a member of a pair of commits
     of which one commit is the only parent of the other.
     """
+
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, repo_path, start, finish, only_paths):
         super(PairStrategy, self).__init__(repo_path, start, finish, only_paths)
 
@@ -122,6 +127,9 @@ class LinearStrategy(GenericStrategy):
     Each iteration checks out the first parent of the current commit
     and returns the SHA of the parent.
     """
+
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, repo_path, start, finish, only_paths=None):
         super(LinearStrategy, self).__init__(repo_path, start, finish, only_paths)
 
@@ -149,4 +157,5 @@ class LinearStrategy(GenericStrategy):
 STRATEGIES = {"linear": LinearStrategy, "pairs": PairStrategy}
 
 def select_strategy(identifier):
+    """Returns a strategy class for a given identifier"""
     return STRATEGIES[identifier]
