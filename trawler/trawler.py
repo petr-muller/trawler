@@ -8,17 +8,19 @@ import datetime
 import logging
 import os
 import timeit
+from typing import Tuple, List
 from pathlib import Path
 
 from trawler.executor import Executor
-from trawler.repo_iterator import select_strategy
+from trawler.repo_iterator import select_strategy, GenericStrategy
 
 
 class Trawler(object):
     """
     Crawls a Git repository, obtaining test result artifacts for each revision.
     """
-    def __init__(self, repository_path, recipe_file, top_revision, bottom_revision, strategy):
+    def __init__(self, repository_path: str, recipe_file: str, top_revision: str,
+                 bottom_revision: str, strategy: GenericStrategy) -> None:
         self.repo_path = repository_path
         self.top = top_revision
         self.bottom = bottom_revision
@@ -26,11 +28,11 @@ class Trawler(object):
         self.recipe = configparser.ConfigParser()
         self.recipe.read(recipe_file)
 
-        self.output_directory = None
+        self.output_directory = None # type: Path
 
         self.strategy = strategy
 
-    def _get_recipes(self):
+    def _get_recipes(self) -> Tuple[List[str], List[str], List[str]]:
 
         compile_recipe = self.recipe["recipes"]["compile"].split(';')
         test_recipe = self.recipe["recipes"]["test"].split(';')
@@ -38,7 +40,7 @@ class Trawler(object):
 
         return (compile_recipe, test_recipe, clean_recipe)
 
-    def prepare_output_directory(self):
+    def prepare_output_directory(self) -> None:
         """
         Prepares an output directory for this crawling run.
         """
@@ -54,7 +56,7 @@ class Trawler(object):
         logging.debug("Setting output directory: %s", output_dir)
         self.output_directory = output_dir
 
-    def run(self):
+    def run(self) -> None:
         """
         Starts crawling.
         """
