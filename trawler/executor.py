@@ -5,8 +5,10 @@ Created on Jul 30, 2016
 '''
 import subprocess
 import shlex
-from pathlib import Path
+
 from typing import Any, IO, List
+
+from path import Path
 
 class Executor(object):
     """

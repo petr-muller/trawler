@@ -8,8 +8,10 @@ import datetime
 import logging
 import os
 import timeit
+import shutil
 from typing import Tuple, List
-from pathlib import Path
+
+from path import Path
 
 from trawler.executor import Executor
 from trawler.repo_iterator import select_strategy
@@ -21,7 +23,7 @@ class Trawler(object):
     """
     def __init__(self, repository_path: str, recipe_file: str, top_revision: str,
                  bottom_revision: str, strategy: str) -> None:
-        self.repo_path = repository_path
+        self.repo_path = Path(repository_path)
         self.top = top_revision
         self.bottom = bottom_revision
 
@@ -56,6 +58,40 @@ class Trawler(object):
         logging.debug("Setting output directory: %s", output_dir)
         self.output_directory = output_dir
 
+
+    def process_revision(self, repository_executor, iterator, counter, revision):
+        """Process a single revision"""
+
+        logging.info("Processing revision: %s", revision)
+        logging.info("Compiling revision:  %s", revision)
+
+        output_filename = "{0:04d}-{1}-compile-log".format(counter, revision)
+        output_file_path = self.output_directory / output_filename
+
+        compile_start = timeit.default_timer()
+        repository_executor.compile(output_file_path)
+        output_file_path.remove()
+        compile_end = timeit.default_timer()
+        logging.info("Compiling revision:  %s: OK (%d seconds)", revision,
+                     compile_end - compile_start)
+
+        logging.info("Testing revision:    %s", revision)
+        output_filename = "{0:04d}-{1}".format(counter, revision)
+        output_file_path = self.output_directory / output_filename
+        test_start = timeit.default_timer()
+        repository_executor.test(output_file_path)
+        if "artifacts" in self.recipe:
+            for artifact in self.recipe["artifacts"]:
+                artifact_path = self.output_directory / ("{0}-{1}".format(output_file_path,
+                                                                          artifact))
+                shutil.copyfile(self.repo_path / self.recipe["artifacts"][artifact], artifact_path)
+
+        test_end = timeit.default_timer()
+        logging.info("Testing revision:    %s: finished (%d seconds)", revision,
+                     test_end - test_start)
+        counter += 1
+        iterator.write_data(self.output_directory)
+
     def run(self) -> None:
         """
         Starts crawling.
@@ -73,25 +109,4 @@ class Trawler(object):
 
         counter = 1
         for revision in iterator:
-            logging.info("Processing revision: %s", revision)
-            logging.info("Compiling revision:  %s", revision)
-            output_filename = "{0:04d}-{1}-compile-log".format(counter, revision)
-            output_file_path = self.output_directory / output_filename
-            compile_start = timeit.default_timer()
-            repository_executor.compile(output_file_path)
-            output_file_path.remove()
-            compile_end = timeit.default_timer()
-            logging.info("Compiling revision:  %s: OK (%d seconds)", revision,
-                         compile_end - compile_start)
-
-            logging.info("Testing revision:    %s", revision)
-            output_filename = "{0:04d}-{1}".format(counter, revision)
-            output_file_path = self.output_directory / output_filename
-            test_start = timeit.default_timer()
-            repository_executor.test(output_file_path)
-            test_end = timeit.default_timer()
-            logging.info("Testing revision:    %s: finished (%d seconds)", revision,
-                         test_end - test_start)
-            counter += 1
-
-            iterator.write_data(self.output_directory)
+            self.process_revision(repository_executor, iterator, counter, revision)

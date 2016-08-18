@@ -6,7 +6,7 @@ Created on Jul 30, 2016
 
 import logging
 import re
-from pathlib import Path
+from path import Path
 
 import git
 from git.objects.commit import Commit
