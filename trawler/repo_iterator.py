@@ -84,10 +84,13 @@ class PairStrategy(GenericStrategy):
 
         if self.return_queue:
             self.last = self.return_queue.pop()
-            self.visited.add(self.last)
             return self.last
 
         while self.worklist:
+            if self.return_queue:
+                self.last = self.return_queue.pop()
+                return self.last
+
             candidate_hash = self.worklist.pop(0)
             candidate_commit = self.repo.commit(candidate_hash)
 

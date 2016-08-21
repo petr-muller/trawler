@@ -36,9 +36,9 @@ class Trawler(object):
 
     def _get_recipes(self) -> Tuple[List[str], List[str], List[str]]:
 
-        compile_recipe = self.recipe["recipes"]["compile"].split(';')
-        test_recipe = self.recipe["recipes"]["test"].split(';')
-        clean_recipe = self.recipe["recipes"]["clean"].split(";")
+        compile_recipe = self.recipe["compile"]["command"].split(';')
+        test_recipe = self.recipe["test"]["command"].split(';')
+        clean_recipe = self.recipe["clean"]["command"].split(";")
 
         return (compile_recipe, test_recipe, clean_recipe)
 
@@ -59,43 +59,53 @@ class Trawler(object):
         self.output_directory = output_dir
 
 
-    def process_revision(self, repository_executor, iterator, counter, revision):
-        """Process a single revision"""
-
-        logging.info("Processing revision: %s", revision)
+    def compile(self, repository_executor: Executor, counter: int, revision: str) -> None:
+        """Compile the software project"""
         logging.info("Compiling revision:  %s", revision)
-
-        output_filename = "{0:04d}-{1}-compile-log".format(counter, revision)
-        output_file_path = self.output_directory / output_filename
-
+        compile_log_filename = "{0:04d}-{1}-compile-log".format(counter, revision)
+        output_file_path = self.output_directory / compile_log_filename
         compile_start = timeit.default_timer()
         repository_executor.compile(output_file_path)
         output_file_path.remove()
-        compile_end = timeit.default_timer()
-        logging.info("Compiling revision:  %s: OK (%d seconds)", revision,
-                     compile_end - compile_start)
+        duration = timeit.default_timer() - compile_start
+        logging.info("Compiling revision:  %s: OK (%d seconds)", revision, duration)
 
+
+    def test(self, repository_executor: Executor, counter: int, revision: str) -> None:
+        """Run tests on the software projects"""
         logging.info("Testing revision:    %s", revision)
         output_filename = "{0:04d}-{1}".format(counter, revision)
         output_file_path = self.output_directory / output_filename
         test_start = timeit.default_timer()
-        repository_executor.test(output_file_path)
+
+        if "directory" in self.recipe["test"]:
+            directory = Path(self.recipe["test"]["directory"])
+        else:
+            directory = self.repo_path
+
+        repository_executor.test(output_file_path, directory=directory)
+
         if "artifacts" in self.recipe:
             for artifact in self.recipe["artifacts"]:
                 artifact_path = self.output_directory / ("{0}-{1}".format(output_file_path,
                                                                           artifact))
-                shutil.copyfile(self.repo_path / self.recipe["artifacts"][artifact], artifact_path)
+                shutil.copyfile(directory / self.recipe["artifacts"][artifact], artifact_path)
 
-        test_end = timeit.default_timer()
-        logging.info("Testing revision:    %s: finished (%d seconds)", revision,
-                     test_end - test_start)
-        counter += 1
-        iterator.write_data(self.output_directory)
+        duration = timeit.default_timer() - test_start
+        logging.info("Testing revision:    %s: finished (%d seconds)", revision, duration)
+
+
+    def process_revision(self, repository_executor: Executor, counter: int, revision: str) -> None:
+        """Process a single revision"""
+
+        logging.info("Processing revision: %s", revision)
+
+        self.compile(repository_executor, counter, revision)
+        self.test(repository_executor, counter, revision)
+
 
     def run(self) -> None:
-        """
-        Starts crawling.
-        """
+        """Starts crawling."""
 
         compile_recipe, test_recipe, clean_recipe = self._get_recipes()
         repository_executor = Executor(self.repo_path, compile_recipe, test_recipe, clean_recipe)
@@ -109,4 +119,6 @@ class Trawler(object):
 
         counter = 1
         for revision in iterator:
-            self.process_revision(repository_executor, iterator, counter, revision)
+            self.process_revision(repository_executor, counter, revision)
+            counter += 1
+            iterator.write_data(self.output_directory)

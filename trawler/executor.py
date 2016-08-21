@@ -38,12 +38,15 @@ class Executor(object):
             with self.repo_path:
                 Executor._run_recipe(self.compile_recipe, output=output_file, check=True)
 
-    def test(self, output_file_path: str) -> None:
+    def test(self, output_file_path: str, directory: Path=None) -> None:
         """
         Execute a recipe to run a projects testsuite.
         """
+        if not directory:
+            directory = self.repo_path
+
         with open(output_file_path, "w") as output_file:
-            with self.repo_path:
+            with directory:
                 Executor._run_recipe(self.test_recipe, output=output_file, check=False)
 
     def clean(self) -> None:
